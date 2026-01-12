@@ -1,8 +1,12 @@
 import time
 import ctypes
 import subprocess
+import threading
+import math
+import os
 
 _results = {}
+MEGA = 1024 * 1024
 
 def refresh_screen():
     try:
@@ -30,9 +34,11 @@ def measure_latency():
             delta = (end.value - start.value) / freq.value * 1000
             samples.append(delta - 1.0)
         
-        return sum(samples) / len(samples)
+        avg = sum(samples) / len(samples)
+        variance = sum((x - avg) ** 2 for x in samples) / len(samples)
+        return round(avg, 3), round(math.sqrt(variance), 3)
     except:
-        return -1
+        return -1, -1
 
 def measure_memory():
     try:
@@ -56,8 +62,8 @@ def measure_memory():
         k32.GlobalMemoryStatusEx(ctypes.byref(s))
         
         return {
-            "total_mb": s.total // (1024 * 1024),
-            "avail_mb": s.avail // (1024 * 1024),
+            "total_mb": s.total // MEGA,
+            "avail_mb": s.avail // MEGA,
             "used_pct": s.load
         }
     except:
@@ -75,11 +81,27 @@ def measure_dpc():
         pass
     return -1
 
+def measure_cpu_speed():
+    start = time.perf_counter()
+    ops = 0
+    while time.perf_counter() - start < 1.0:
+        for _ in range(10000):
+            _ = math.sqrt(12345.6789) * math.sin(9876.54321)
+        ops += 10000
+    return ops
+
 def run_benchmark():
+    latency, jitter = measure_latency()
+    mem = measure_memory()
+    dpc = measure_dpc()
+    cpu_speed = measure_cpu_speed()
+    
     return {
-        "latency_ms": round(measure_latency(), 3),
-        "memory": measure_memory(),
-        "dpc_pct": round(measure_dpc(), 2),
+        "latency_ms": latency,
+        "jitter_ms": jitter,
+        "memory": mem,
+        "dpc_pct": round(dpc, 2),
+        "cpu_ops_per_sec": cpu_speed,
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
     }
 
@@ -102,13 +124,17 @@ def get_comparison():
     a = _results["after"]
     
     lat_diff = b["latency_ms"] - a["latency_ms"]
+    jit_diff = b["jitter_ms"] - a["jitter_ms"]
     mem_diff = a["memory"]["avail_mb"] - b["memory"]["avail_mb"]
     dpc_diff = b["dpc_pct"] - a["dpc_pct"]
+    cpu_diff = a["cpu_ops_per_sec"] - b["cpu_ops_per_sec"]
     
     return {
-        "latency": {"before": b["latency_ms"], "after": a["latency_ms"], "diff": round(lat_diff, 3)},
-        "memory_free": {"before": b["memory"]["avail_mb"], "after": a["memory"]["avail_mb"], "diff": mem_diff},
-        "dpc": {"before": b["dpc_pct"], "after": a["dpc_pct"], "diff": round(dpc_diff, 2)}
+        "latency": {"before": b["latency_ms"], "after": a["latency_ms"], "diff": round(lat_diff, 3), "better": lat_diff > 0},
+        "jitter": {"before": b["jitter_ms"], "after": a["jitter_ms"], "diff": round(jit_diff, 3), "better": jit_diff > 0},
+        "memory_free": {"before": b["memory"]["avail_mb"], "after": a["memory"]["avail_mb"], "diff": mem_diff, "better": mem_diff >= 0},
+        "dpc": {"before": b["dpc_pct"], "after": a["dpc_pct"], "diff": round(dpc_diff, 2), "better": dpc_diff > 0},
+        "cpu_speed": {"before": b["cpu_ops_per_sec"], "after": a["cpu_ops_per_sec"], "diff": cpu_diff, "better": cpu_diff > 0}
     }
 
 def run_fps_benchmark(duration=10):
@@ -121,9 +147,15 @@ def run_fps_benchmark(duration=10):
         height = user32.GetSystemMetrics(1)
         
         frames = 0
-        start = time.time()
+        frame_times = []
+        start = time.perf_counter()
+        last_frame = start
         
-        while time.time() - start < duration:
+        while time.perf_counter() - start < duration:
+            now = time.perf_counter()
+            frame_times.append(now - last_frame)
+            last_frame = now
+            
             for i in range(10):
                 x = (frames * 7) % width
                 y = (frames * 11) % height
@@ -137,43 +169,55 @@ def run_fps_benchmark(duration=10):
         user32.ReleaseDC(0, hdc)
         refresh_screen()
         
-        elapsed = time.time() - start
+        elapsed = time.perf_counter() - start
         fps = frames / elapsed
+        
+        avg_frame_time = sum(frame_times) / len(frame_times) * 1000 if frame_times else 0
+        min_frame_time = min(frame_times) * 1000 if frame_times else 0
+        max_frame_time = max(frame_times) * 1000 if frame_times else 0
+        
+        percentile_1 = sorted(frame_times)[int(len(frame_times) * 0.01)] * 1000 if len(frame_times) > 100 else min_frame_time
         
         return {
             "fps": round(fps, 1),
             "frames": frames,
             "duration": round(elapsed, 2),
+            "avg_frame_ms": round(avg_frame_time, 2),
+            "min_frame_ms": round(min_frame_time, 2),
+            "max_frame_ms": round(max_frame_time, 2),
+            "1pct_low_ms": round(percentile_1, 2),
             "score": int(fps * 10)
         }
     except Exception as e:
         refresh_screen()
         return {"fps": 0, "frames": 0, "duration": 0, "score": 0, "error": str(e)}
 
-def run_stress_test(duration=30):
+def run_stress_test(duration=30, target_pct=100):
     try:
-        import threading
-        import math
-        import os
+        cores = os.cpu_count() or 4
+        proc_num = int(cores * target_pct / 100)
+        if proc_num < 1:
+            proc_num = 1
         
-        results = {"cpu_ops": 0, "completed": False}
+        results = {"cpu_ops": 0, "completed": False, "cores_used": proc_num}
         stop_flag = [False]
         lock = threading.Lock()
+        ops_list = [0] * proc_num
         
-        def cpu_work():
+        def cpu_work(thread_id):
             ops = 0
             while not stop_flag[0]:
                 for i in range(1000):
-                    _ = math.sqrt(i * 3.14159) * math.sin(i)
+                    _ = math.sqrt(i * 3.14159) * math.sin(i) * math.cos(i)
+                    _ = math.log(i + 1) * math.exp(0.0001)
                 ops += 1000
-            with lock:
-                results["cpu_ops"] += ops
+            ops_list[thread_id] = ops
         
         threads = []
-        cores = os.cpu_count() or 4
+        start = time.perf_counter()
         
-        for _ in range(cores):
-            t = threading.Thread(target=cpu_work)
+        for i in range(proc_num):
+            t = threading.Thread(target=cpu_work, args=(i,))
             t.start()
             threads.append(t)
         
@@ -183,11 +227,52 @@ def run_stress_test(duration=30):
         for t in threads:
             t.join()
         
+        elapsed = time.perf_counter() - start
+        total_ops = sum(ops_list)
+        
+        results["cpu_ops"] = total_ops
+        results["ops_per_sec"] = int(total_ops / elapsed)
         results["completed"] = True
-        results["score"] = results["cpu_ops"] // 1000
+        results["elapsed"] = round(elapsed, 2)
+        results["score"] = total_ops // 10000
         return results
     except Exception as e:
         return {"cpu_ops": 0, "completed": False, "error": str(e)}
+
+def run_memory_stress(size_mb=512, duration=10):
+    try:
+        block_size = 64 * MEGA
+        blocks = []
+        allocated = 0
+        target = size_mb * MEGA
+        
+        start = time.perf_counter()
+        
+        while allocated < target and time.perf_counter() - start < duration:
+            try:
+                block = ' ' * block_size
+                blocks.append(block)
+                allocated += block_size
+            except MemoryError:
+                break
+        
+        mem_during = measure_memory()
+        
+        time.sleep(min(2, duration - (time.perf_counter() - start)))
+        
+        del blocks
+        
+        elapsed = time.perf_counter() - start
+        
+        return {
+            "allocated_mb": allocated // MEGA,
+            "target_mb": size_mb,
+            "mem_used_pct": mem_during["used_pct"],
+            "elapsed": round(elapsed, 2),
+            "success": allocated >= target * 0.9
+        }
+    except Exception as e:
+        return {"allocated_mb": 0, "error": str(e)}
 
 def run_gpu_benchmark(duration=15):
     try:
@@ -201,12 +286,18 @@ def run_gpu_benchmark(duration=15):
         frames = 0
         pixels = 0
         rects = 0
-        start = time.time()
+        frame_times = []
+        start = time.perf_counter()
+        last_frame = start
         
         hbrush = gdi32.CreateSolidBrush(0xFF0000)
         hpen = gdi32.CreatePen(0, 2, 0x00FF00)
         
-        while time.time() - start < duration:
+        while time.perf_counter() - start < duration:
+            now = time.perf_counter()
+            frame_times.append(now - last_frame)
+            last_frame = now
+            
             old_brush = gdi32.SelectObject(hdc, hbrush)
             old_pen = gdi32.SelectObject(hdc, hpen)
             
@@ -245,8 +336,10 @@ def run_gpu_benchmark(duration=15):
         user32.ReleaseDC(0, hdc)
         refresh_screen()
         
-        elapsed = time.time() - start
+        elapsed = time.perf_counter() - start
         fps = frames / elapsed
+        
+        avg_frame_time = sum(frame_times) / len(frame_times) * 1000 if frame_times else 0
         
         return {
             "fps": round(fps, 1),
@@ -254,6 +347,7 @@ def run_gpu_benchmark(duration=15):
             "rectangles": rects,
             "pixels": pixels,
             "duration": round(elapsed, 2),
+            "avg_frame_ms": round(avg_frame_time, 2),
             "score": int(fps * 15 + rects / 100)
         }
     except Exception as e:

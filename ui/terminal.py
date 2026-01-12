@@ -457,31 +457,39 @@ def menu_benchmark():
             console.print(f"\n[{WARN}]⏳ Running system benchmark...[/]")
             r = benchmark.save_before()
             console.print(f"\n[{OK}]━━━ BEFORE Results ━━━[/]")
-            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/]")
+            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/] (jitter: {r['jitter_ms']}ms)")
             console.print(f"  Memory Free: [{C1}]{r['memory']['avail_mb']}MB[/]")
             console.print(f"  DPC Time: [{C1}]{r['dpc_pct']}%[/]")
+            console.print(f"  CPU Speed: [{C1}]{r['cpu_ops_per_sec']:,}[/] ops/sec")
             inp()
         elif ch == "2":
             console.print(f"\n[{WARN}]⏳ Running system benchmark...[/]")
             r = benchmark.save_after()
             console.print(f"\n[{OK}]━━━ AFTER Results ━━━[/]")
-            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/]")
+            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/] (jitter: {r['jitter_ms']}ms)")
             console.print(f"  Memory Free: [{C1}]{r['memory']['avail_mb']}MB[/]")
             console.print(f"  DPC Time: [{C1}]{r['dpc_pct']}%[/]")
+            console.print(f"  CPU Speed: [{C1}]{r['cpu_ops_per_sec']:,}[/] ops/sec")
             inp()
         elif ch == "3":
             cmp = benchmark.get_comparison()
             if cmp:
                 console.print(f"\n[{C1}]━━━ COMPARISON ━━━[/]")
                 lat = cmp['latency']
-                diff_color = OK if lat['diff'] >= 0 else ERR
-                console.print(f"  Latency: {lat['before']}ms → {lat['after']}ms [{diff_color}]({'+' if lat['diff'] >= 0 else ''}{lat['diff']}ms)[/]")
+                c = OK if lat['better'] else ERR
+                console.print(f"  Latency: {lat['before']}ms → {lat['after']}ms [{c}]({'+' if lat['diff'] >= 0 else ''}{lat['diff']}ms)[/]")
+                jit = cmp['jitter']
+                c = OK if jit['better'] else ERR
+                console.print(f"  Jitter: {jit['before']}ms → {jit['after']}ms [{c}]({'+' if jit['diff'] >= 0 else ''}{jit['diff']}ms)[/]")
                 mem = cmp['memory_free']
-                diff_color = OK if mem['diff'] >= 0 else ERR
-                console.print(f"  Memory: {mem['before']}MB → {mem['after']}MB [{diff_color}]({'+' if mem['diff'] >= 0 else ''}{mem['diff']}MB)[/]")
+                c = OK if mem['better'] else ERR
+                console.print(f"  Memory: {mem['before']}MB → {mem['after']}MB [{c}]({'+' if mem['diff'] >= 0 else ''}{mem['diff']}MB)[/]")
                 dpc = cmp['dpc']
-                diff_color = OK if dpc['diff'] >= 0 else ERR
-                console.print(f"  DPC: {dpc['before']}% → {dpc['after']}% [{diff_color}]({'+' if dpc['diff'] >= 0 else ''}{dpc['diff']}%)[/]")
+                c = OK if dpc['better'] else ERR
+                console.print(f"  DPC: {dpc['before']}% → {dpc['after']}% [{c}]({'+' if dpc['diff'] >= 0 else ''}{dpc['diff']}%)[/]")
+                cpu = cmp['cpu_speed']
+                c = OK if cpu['better'] else ERR
+                console.print(f"  CPU Speed: {cpu['before']:,} → {cpu['after']:,} [{c}]({'+' if cpu['diff'] >= 0 else ''}{cpu['diff']:,})[/]")
             else:
                 console.print(f"[{ERR}]Run Before and After benchmarks first![/]")
             inp()
