@@ -1,22 +1,17 @@
-"""
-Misc tweaks
-"""
+
 
 import os
 import shutil
 from utils import registry, system, files
 from config import FILES_DIR
 
-
 def run_cleaner():
-    """Dọn dẹp hệ thống"""
+    
     temp_dir = os.environ.get("TEMP", "")
     windir = os.environ.get("SYSTEMROOT", r"C:\Windows")
     
-    # Clear Recycle Bin
     system.run_cmd("rd /s /q %SYSTEMDRIVE%\\$Recycle.bin", shell=True)
     
-    # Clear TEMP
     if temp_dir and os.path.exists(temp_dir):
         for item in os.listdir(temp_dir):
             try:
@@ -28,7 +23,6 @@ def run_cleaner():
             except:
                 pass
     
-    # Clear Windows Temp
     win_temp = os.path.join(windir, "Temp")
     if os.path.exists(win_temp):
         for item in os.listdir(win_temp):
@@ -37,7 +31,6 @@ def run_cleaner():
             except:
                 pass
     
-    # Clear Prefetch
     prefetch = os.path.join(windir, "Prefetch")
     if os.path.exists(prefetch):
         for item in os.listdir(prefetch):
@@ -46,7 +39,6 @@ def run_cleaner():
             except:
                 pass
     
-    # Clear standby list
     esl = files.get_file("EmptyStandbyList.exe")
     if esl:
         for mode in ["workingsets", "modifiedpagelist", "standbylist", "priority0standbylist"]:
@@ -54,35 +46,28 @@ def run_cleaner():
     
     return True
 
-
 def game_boost(exe_path):
-    """Apply boost cho một game cụ thể"""
+    
     if not os.path.exists(exe_path):
         return False
     
     exe_name = os.path.basename(exe_path)
     
-    # GPU preference = High Performance
     registry.reg_add(r"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", exe_path, "GpuPreference=2;", "REG_SZ")
     
-    # Disable fullscreen optimizations
     registry.reg_add(r"HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", exe_path, "~ DISABLEDXMAXIMIZEDWINDOWEDMODE", "REG_SZ")
     
-    # High CPU priority
     path = rf"HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\{exe_name}\PerfOptions"
     registry.reg_add(path, "CpuPriorityClass", 3, "REG_DWORD")
     
     return True
 
-
 def soft_restart():
-    """Soft restart - refresh explorer, network, memory"""
-    # Restart explorer
+    
     system.kill_process("explorer.exe")
     windir = os.environ.get("SYSTEMROOT", r"C:\Windows")
     os.startfile(os.path.join(windir, "explorer.exe"))
     
-    # Flush network
     system.run_cmd("netsh advfirewall reset")
     system.run_cmd("ipconfig /release")
     system.run_cmd("ipconfig /renew")
@@ -91,21 +76,18 @@ def soft_restart():
     system.run_cmd("ipconfig /flushdns")
     system.run_cmd("ipconfig /registerdns")
     
-    # Clear standby
     esl = files.get_file("EmptyStandbyList.exe")
     if esl:
         system.run_cmd(f'"{esl}" standbylist')
     
     return True
 
-
 def is_audio_latency_on():
-    """Kiểm tra audio latency service"""
+    
     return system.service_running("MeoAudio")
 
-
 def toggle_audio_latency():
-    """Bật/tắt audio latency reducer"""
+    
     nssm = files.get_file("nssm.exe")
     real = files.get_file("REAL.exe")
     
@@ -116,7 +98,6 @@ def toggle_audio_latency():
         system.run_cmd(f'"{nssm}" set MeoAudio start SERVICE_DISABLED')
         system.run_cmd(f'"{nssm}" stop MeoAudio')
     else:
-        # Install service nếu chưa có
         if not system.service_exists("MeoAudio"):
             system.run_cmd(f'"{nssm}" install MeoAudio "{real}"')
             system.run_cmd(f'"{nssm}" set MeoAudio DisplayName "MeoBoost Audio Latency Reducer"')
@@ -129,7 +110,6 @@ def toggle_audio_latency():
     
     return True
 
-
 def set_w32_priority(value):
-    """Set Win32 Priority Separation"""
+    
     return registry.reg_add(r"HKLM\SYSTEM\CurrentControlSet\Control\PriorityControl", "Win32PrioritySeparation", value, "REG_DWORD")

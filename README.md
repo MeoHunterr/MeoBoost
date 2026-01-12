@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?style=flat-square&logo=windows" alt="Windows" />
   <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License" />
 </p>
 
 <h1 align="center">MeoBoost</h1>
@@ -79,4 +79,4 @@ Pull requests are welcome. For major changes, please open an issue first.
 
 ## License
 
-[MIT](LICENSE)
+[GPL-3.0](LICENSE)

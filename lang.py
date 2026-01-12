@@ -1,6 +1,4 @@
-"""
-MeoBoost Language & Tweak Descriptions
-"""
+
 
 def get_system_language():
     try:
@@ -10,9 +8,7 @@ def get_system_language():
     except:
         return "en"
 
-
 TWEAKS = {
-    # === Basic Tweaks ===
     "power_plan": {
         "vi": {"name": "Power Plan", "desc": "Kế hoạch điện tối ưu cho gaming", "risk": "⚡ Tăng điện"},
         "en": {"name": "Power Plan", "desc": "Optimized power plan for gaming", "risk": "⚡ More power"}
@@ -46,7 +42,6 @@ TWEAKS = {
         "en": {"name": "Mouse Fix", "desc": "Remove acceleration", "risk": "✓ Safe"}
     },
     
-    # === GPU Tweaks ===
     "gpu": {
         "vi": {"name": "GPU Tweaks", "desc": "HAGS, FSO, GameMode", "risk": "✓ An toàn"},
         "en": {"name": "GPU Tweaks", "desc": "HAGS, FSO, GameMode", "risk": "✓ Safe"}
@@ -84,7 +79,6 @@ TWEAKS = {
         "en": {"name": "Intel VRAM", "desc": "Increase VRAM to 1024MB", "risk": "✓ Safe"}
     },
     
-    # === Network ===
     "tcpip": {
         "vi": {"name": "TCP/IP", "desc": "Tối ưu stack mạng", "risk": "⚠ Không dùng Wi-Fi"},
         "en": {"name": "TCP/IP", "desc": "Network stack optimization", "risk": "⚠ No Wi-Fi"}
@@ -98,7 +92,6 @@ TWEAKS = {
         "en": {"name": "Netsh", "desc": "DCA, RSS, timestamps", "risk": "✓ Safe"}
     },
     
-    # === Advanced ===
     "mitigations": {
         "vi": {"name": "Mitigations", "desc": "Tắt Spectre/Meltdown", "risk": "🔓 Giảm bảo mật"},
         "en": {"name": "Mitigations", "desc": "Disable Spectre/Meltdown", "risk": "🔓 Less secure"}
@@ -124,7 +117,6 @@ TWEAKS = {
         "en": {"name": "P-States 0", "desc": "GPU max clock", "risk": "🔥 Hotter GPU"}
     },
     
-    # === Privacy ===
     "win_telemetry": {
         "vi": {"name": "Win Telemetry", "desc": "Tắt thu thập Windows", "risk": "✓ An toàn"},
         "en": {"name": "Win Telemetry", "desc": "Disable Windows telemetry", "risk": "✓ Safe"}
@@ -154,7 +146,6 @@ TWEAKS = {
         "en": {"name": "All Privacy", "desc": "Apply all privacy tweaks", "risk": "✓ Safe"}
     },
     
-    # === FPS Extras ===
     "visual_fx": {
         "vi": {"name": "Visual FX", "desc": "Tắt animations, transparency", "risk": "✓ An toàn"},
         "en": {"name": "Visual FX", "desc": "Disable animations, transparency", "risk": "✓ Safe"}
@@ -220,7 +211,6 @@ TWEAKS = {
         "en": {"name": "All FPS", "desc": "Apply all FPS tweaks", "risk": "⚠ Many changes"}
     },
     
-    # === Tools ===
     "cleaner": {
         "vi": {"name": "Cleaner", "desc": "Xóa temp, cache", "risk": "✓ An toàn"},
         "en": {"name": "Cleaner", "desc": "Clear temp, cache", "risk": "✓ Safe"}
@@ -246,7 +236,6 @@ TWEAKS = {
         "en": {"name": "Backup", "desc": "Backup registry", "risk": "✓ Safe"}
     },
     
-    # === NVIDIA Power & Latency Optimizations ===
     "nvidia_dram_active": {
         "vi": {"name": "NV DRAM Active", "desc": "Giữ bộ nhớ GPU luôn sẵn sàng, giảm delay", "risk": "⚡ Tăng điện"},
         "en": {"name": "NV DRAM Active", "desc": "Keep GPU memory active, reduce delay", "risk": "⚡ More power"}
@@ -296,7 +285,6 @@ TWEAKS = {
         "en": {"name": "NV Low Power", "desc": "Keep GPU processing zones active", "risk": "⚡ More power"}
     },
     
-    # === NVIDIA Disable Power-Saving ===
     "nvidia_aspm": {
         "vi": {"name": "NV ASPM Off", "desc": "Tắt quản lý điện PCIe", "risk": "⚡ Tăng điện"},
         "en": {"name": "NV ASPM Off", "desc": "Disable PCIe power management", "risk": "⚡ More power"}
@@ -326,7 +314,6 @@ TWEAKS = {
         "en": {"name": "NV TCC Off", "desc": "Graphics mode instead of Compute", "risk": "✓ Safe"}
     },
     
-    # === NVIDIA Performance Unlocks ===
     "nvidia_polling_latency": {
         "vi": {"name": "NV Polling", "desc": "Giảm thời gian chờ CPU-GPU", "risk": "✓ An toàn"},
         "en": {"name": "NV Polling", "desc": "Reduce CPU-GPU polling latency", "risk": "✓ Safe"}
@@ -344,7 +331,6 @@ TWEAKS = {
         "en": {"name": "NV Perf Limits", "desc": "Unlock driver performance limits", "risk": "🔥 Hotter GPU"}
     },
     
-    # === System Device Tweaks ===
     "com_ports": {
         "vi": {"name": "COM Ports Off", "desc": "Tắt cổng COM1/COM2 không dùng", "risk": "✓ An toàn"},
         "en": {"name": "COM Ports Off", "desc": "Disable unused COM ports", "risk": "✓ Safe"}

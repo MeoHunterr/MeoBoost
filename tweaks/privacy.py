@@ -1,19 +1,15 @@
-"""
-Privacy Tweaks - Disable Windows telemetry and data collection
-"""
+
 
 from utils import registry, system
 from config import REG_APP
 
-
 def is_telemetry_off():
-    """Check if Windows telemetry is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry")
     return val == 0
 
-
 def toggle_telemetry():
-    """Disable/Enable Windows telemetry"""
+    
     if is_telemetry_off():
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry")
         registry.reg_delete(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry")
@@ -27,15 +23,13 @@ def toggle_telemetry():
         system.stop_service("dmwappushservice")
     return True
 
-
 def is_cortana_off():
-    """Check if Cortana is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search", "AllowCortana")
     return val == 0
 
-
 def toggle_cortana():
-    """Disable/Enable Cortana"""
+    
     if is_cortana_off():
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search", "AllowCortana")
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search", "DisableWebSearch")
@@ -46,15 +40,13 @@ def toggle_cortana():
         registry.reg_add(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search", "ConnectedSearchUseWeb", 0, "REG_DWORD")
     return True
 
-
 def is_activity_off():
-    """Check if Activity History is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\System", "EnableActivityFeed")
     return val == 0
 
-
 def toggle_activity():
-    """Disable/Enable Activity History"""
+    
     if is_activity_off():
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\System", "EnableActivityFeed")
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\System", "PublishUserActivities")
@@ -65,30 +57,26 @@ def toggle_activity():
         registry.reg_add(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\System", "UploadUserActivities", 0, "REG_DWORD")
     return True
 
-
 def is_location_off():
-    """Check if Location tracking is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value")
     return val == "Deny"
 
-
 def toggle_location():
-    """Disable/Enable Location tracking"""
+    
     if is_location_off():
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Allow", "REG_SZ")
     else:
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location", "Value", "Deny", "REG_SZ")
     return True
 
-
 def is_ads_off():
-    """Check if Advertising ID is disabled"""
+    
     val = registry.read_value(r"HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled")
     return val == 0
 
-
 def toggle_ads():
-    """Disable/Enable Advertising ID"""
+    
     if is_ads_off():
         registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 1, "REG_DWORD")
     else:
@@ -96,15 +84,13 @@ def toggle_ads():
         registry.reg_add(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo", "DisabledByGroupPolicy", 1, "REG_DWORD")
     return True
 
-
 def is_feedback_off():
-    """Check if Feedback is disabled"""
+    
     val = registry.read_value(r"HKCU\Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod")
     return val == 0
 
-
 def toggle_feedback():
-    """Disable/Enable Windows Feedback"""
+    
     if is_feedback_off():
         registry.reg_delete(r"HKCU\Software\Microsoft\Siuf\Rules", "NumberOfSIUFInPeriod")
         registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications")
@@ -113,46 +99,40 @@ def toggle_feedback():
         registry.reg_add(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection", "DoNotShowFeedbackNotifications", 1, "REG_DWORD")
     return True
 
-
 def is_camera_off():
-    """Check if Camera access is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam", "Value")
     return val == "Deny"
 
-
 def toggle_camera():
-    """Disable/Enable Camera access for apps"""
+    
     if is_camera_off():
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam", "Value", "Allow", "REG_SZ")
     else:
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam", "Value", "Deny", "REG_SZ")
     return True
 
-
 def is_microphone_off():
-    """Check if Microphone access is disabled"""
+    
     val = registry.read_value(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone", "Value")
     return val == "Deny"
 
-
 def toggle_microphone():
-    """Disable/Enable Microphone access for apps"""
+    
     if is_microphone_off():
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone", "Value", "Allow", "REG_SZ")
     else:
         registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone", "Value", "Deny", "REG_SZ")
     return True
 
-
 def apply_all_privacy():
-    """Apply all privacy tweaks at once"""
+    
     toggle_telemetry() if not is_telemetry_off() else None
     toggle_cortana() if not is_cortana_off() else None
     toggle_activity() if not is_activity_off() else None
     toggle_ads() if not is_ads_off() else None
     toggle_feedback() if not is_feedback_off() else None
     
-    # Disable more telemetry services
     services = [
         "DiagTrack", "dmwappushservice", "diagnosticshub.standardcollector.service",
         "WerSvc", "WMPNetworkSvc", "WSearch"
@@ -161,7 +141,6 @@ def apply_all_privacy():
         system.set_service_startup(svc, "disabled")
         system.stop_service(svc)
     
-    # Disable scheduled tasks
     tasks = [
         r"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
         r"\Microsoft\Windows\Application Experience\ProgramDataUpdater",

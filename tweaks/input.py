@@ -1,12 +1,8 @@
-"""
-Input (Mouse) tweaks
-"""
+
 
 import ctypes
 from utils import registry
 
-
-# Mouse curve data cho các DPI scales
 MOUSE_CURVES = {
     100: "0000000000000000C0CC0C0000000000809919000000000040662600000000000033330000000000",
     125: "00000000000000000000100000000000000020000000000000003000000000000000400000000000",
@@ -24,9 +20,8 @@ MOUSE_Y = "0000000000000000000038000000000000007000000000000000A800000000000000E
 DEFAULT_X = "0000000000000000156e000000000000004001000000000029dc0300000000000000280000000000"
 DEFAULT_Y = "0000000000000000fd11010000000000002404000000000000fc12000000000000c0bb0100000000"
 
-
 def get_display_scale():
-    """Lấy display scale hiện tại"""
+    
     try:
         user32 = ctypes.windll.user32
         dc = user32.GetDC(0)
@@ -40,9 +35,8 @@ def get_display_scale():
     except:
         return 100
 
-
 def is_mouse_fix_on():
-    """Kiểm tra mouse fix đã bật chưa"""
+    
     val = registry.read_value(r"HKCU\Control Panel\Mouse", "SmoothMouseYCurve")
     if val:
         try:
@@ -52,20 +46,17 @@ def is_mouse_fix_on():
             pass
     return False
 
-
 def toggle_mouse_fix(scale=None):
-    """Bật/tắt mouse fix"""
+    
     if scale is None:
         scale = get_display_scale()
     
     if is_mouse_fix_on():
-        # Reset về default
         x_bytes = bytes.fromhex(DEFAULT_X)
         y_bytes = bytes.fromhex(DEFAULT_Y)
         registry.write_value(r"HKCU\Control Panel\Mouse", "SmoothMouseXCurve", x_bytes, "REG_BINARY")
         registry.write_value(r"HKCU\Control Panel\Mouse", "SmoothMouseYCurve", y_bytes, "REG_BINARY")
     else:
-        # Apply mouse fix
         registry.reg_add(r"HKCU\Control Panel\Mouse", "MouseSpeed", "0", "REG_SZ")
         registry.reg_add(r"HKCU\Control Panel\Mouse", "MouseThreshold1", "0", "REG_SZ")
         registry.reg_add(r"HKCU\Control Panel\Mouse", "MouseThreshold2", "0", "REG_SZ")
