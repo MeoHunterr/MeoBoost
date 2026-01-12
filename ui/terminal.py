@@ -85,7 +85,11 @@ def inp():
 
 # === MAIN ===
 
-def main():
+_beta = False
+
+def main(beta=False):
+    global _beta
+    _beta = beta
     while True:
         logo()
         items = [
@@ -93,10 +97,14 @@ def main():
             f"[{C2}][2][/] {t('menu_deep_optimize')}",
             f"[{C2}][3][/] {t('menu_privacy')}",
             f"[{C2}][4][/] {t('menu_tools')}",
-            f"[{C2}][5][/] {t('menu_benchmark')}",
-            f"[{C2}][6][/] {t('menu_language')} [{DIM}]{get_lang().upper()}[/]",
-            f"[{ERR}][X][/] {t('menu_exit')}",
         ]
+        if _beta:
+            items.append(f"[{C2}][5][/] {t('menu_benchmark')} [BETA]")
+            items.append(f"[{C2}][6][/] {t('menu_language')} [{DIM}]{get_lang().upper()}[/]")
+        else:
+            items.append(f"[{C2}][5][/] {t('menu_language')} [{DIM}]{get_lang().upper()}[/]")
+        items.append(f"[{ERR}][X][/] {t('menu_exit')}")
+        
         tbl = Table(show_header=False, box=None, expand=True, padding=(1, 3))
         tbl.add_column(ratio=1, justify="center")
         tbl.add_column(ratio=1, justify="center")
@@ -109,8 +117,12 @@ def main():
         elif ch == "2": menu_deep_optimize()
         elif ch == "3": menu_privacy()
         elif ch == "4": menu_tools()
-        elif ch == "5": menu_benchmark()
-        elif ch == "6": menu_lang()
+        elif ch == "5":
+            if _beta:
+                menu_benchmark()
+            else:
+                menu_lang()
+        elif ch == "6" and _beta: menu_lang()
         elif ch.lower() == "x": break
 
 
@@ -616,7 +628,7 @@ def disclaimer():
     return inp().lower() in ["ok", "yes", "dong y"]
 
 
-def run():
+def run(beta=False):
     saved = load_lang()
     init_language(saved if saved else None)
     if not system.is_admin():
@@ -631,4 +643,5 @@ def run():
         console.print(f"[{WARN}]{t('creating_backup')}[/]")
         backup.full_backup()
         backup.mark_initialized()
-    main()
+    main(beta=beta)
+
