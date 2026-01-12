@@ -450,91 +450,37 @@ def menu_benchmark():
     from utils import benchmark
     while True:
         logo()
-        console.print(f"[{C1}]─── {t('menu_benchmark')} ───[/]", justify="center")
+        console.print(f"[{C1}]─── STRESS TEST [BETA] ───[/]", justify="center")
         console.print()
-        console.print(f"[{DIM}]⚠ Lưu ý: Các chấm/hình trên màn hình là do benchmark, tự động xóa sau khi xong[/]")
+        console.print(f"[{DIM}]⚠ Lưu ý: Test sẽ vẽ lên màn hình, tự động xóa sau khi xong[/]")
+        console.print(f"[{DIM}]⚠ Sẽ sử dụng 100% CPU và GPU![/]")
         console.print()
-        console.print(f"[{C2}][1][/] System Benchmark (Before)")
-        console.print(f"[{C2}][2][/] System Benchmark (After)")
-        console.print(f"[{C2}][3][/] Compare Before/After")
-        console.print(f"[{C2}][4][/] FPS Benchmark (10s)")
-        console.print(f"[{C2}][5][/] CPU Stress Test (30s)")
-        console.print(f"[{C2}][6][/] GPU Benchmark (15s)")
+        console.print(f"[{C2}][1][/] Run Stress Test (CPU 15s + GPU 15s)")
         footer()
         
         ch = inp()
         if ch.lower() == "b": break
         elif ch.lower() == "x": sys.exit(0)
         elif ch == "1":
-            console.print(f"\n[{WARN}]⏳ Running system benchmark...[/]")
-            r = benchmark.save_before()
-            console.print(f"\n[{OK}]━━━ BEFORE Results ━━━[/]")
-            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/] (jitter: {r['jitter_ms']}ms)")
-            console.print(f"  Memory Free: [{C1}]{r['memory']['avail_mb']}MB[/]")
-            console.print(f"  DPC Time: [{C1}]{r['dpc_pct']}%[/]")
-            console.print(f"  CPU Speed: [{C1}]{r['cpu_ops_per_sec']:,}[/] ops/sec")
-            inp()
-        elif ch == "2":
-            console.print(f"\n[{WARN}]⏳ Running system benchmark...[/]")
-            r = benchmark.save_after()
-            console.print(f"\n[{OK}]━━━ AFTER Results ━━━[/]")
-            console.print(f"  Timer Latency: [{C1}]{r['latency_ms']}ms[/] (jitter: {r['jitter_ms']}ms)")
-            console.print(f"  Memory Free: [{C1}]{r['memory']['avail_mb']}MB[/]")
-            console.print(f"  DPC Time: [{C1}]{r['dpc_pct']}%[/]")
-            console.print(f"  CPU Speed: [{C1}]{r['cpu_ops_per_sec']:,}[/] ops/sec")
-            inp()
-        elif ch == "3":
-            cmp = benchmark.get_comparison()
-            if cmp:
-                console.print(f"\n[{C1}]━━━ COMPARISON ━━━[/]")
-                lat = cmp['latency']
-                c = OK if lat['better'] else ERR
-                console.print(f"  Latency: {lat['before']}ms → {lat['after']}ms [{c}]({'+' if lat['diff'] >= 0 else ''}{lat['diff']}ms)[/]")
-                jit = cmp['jitter']
-                c = OK if jit['better'] else ERR
-                console.print(f"  Jitter: {jit['before']}ms → {jit['after']}ms [{c}]({'+' if jit['diff'] >= 0 else ''}{jit['diff']}ms)[/]")
-                mem = cmp['memory_free']
-                c = OK if mem['better'] else ERR
-                console.print(f"  Memory: {mem['before']}MB → {mem['after']}MB [{c}]({'+' if mem['diff'] >= 0 else ''}{mem['diff']}MB)[/]")
-                dpc = cmp['dpc']
-                c = OK if dpc['better'] else ERR
-                console.print(f"  DPC: {dpc['before']}% → {dpc['after']}% [{c}]({'+' if dpc['diff'] >= 0 else ''}{dpc['diff']}%)[/]")
-                cpu = cmp['cpu_speed']
-                c = OK if cpu['better'] else ERR
-                console.print(f"  CPU Speed: {cpu['before']:,} → {cpu['after']:,} [{c}]({'+' if cpu['diff'] >= 0 else ''}{cpu['diff']:,})[/]")
-            else:
-                console.print(f"[{ERR}]Run Before and After benchmarks first![/]")
-            inp()
-        elif ch == "4":
-            console.print(f"\n[{WARN}]⏳ Running FPS benchmark (10s)...[/]")
+            console.print(f"\n[{WARN}]━━━ STRESS TEST ━━━[/]")
+            console.print(f"\n[{WARN}]⏳ Phase 1: CPU Stress (15s)...[/]")
+            console.print(f"[{DIM}]Using 100% CPU...[/]")
+            cpu_r = benchmark.run_cpu_stress(15)
+            console.print(f"[{OK}]✓ CPU Done![/]")
+            console.print(f"  Cores: [{C1}]{cpu_r['cores_used']}/{cpu_r['total_cores']}[/]")
+            console.print(f"  Ops/sec: [{C1}]{cpu_r['ops_per_sec']:,}[/]")
+            console.print(f"  CPU Score: [{C3}]{cpu_r['score']}[/]")
+            
+            console.print(f"\n[{WARN}]⏳ Phase 2: GPU Stress (15s)...[/]")
             console.print(f"[{DIM}]Drawing on screen...[/]")
-            r = benchmark.run_fps_benchmark(10)
-            console.print(f"\n[{OK}]━━━ FPS BENCHMARK ━━━[/]")
-            console.print(f"  FPS: [{C1}]{r['fps']}[/]")
-            console.print(f"  Frames: [{C1}]{r['frames']}[/]")
-            console.print(f"  Duration: [{C1}]{r['duration']}s[/]")
-            console.print(f"  Score: [{C3}]{r['score']}[/]")
-            inp()
-        elif ch == "5":
-            console.print(f"\n[{WARN}]⏳ Running CPU stress test (30s)...[/]")
-            console.print(f"[{DIM}]This will use 100% CPU![/]")
-            r = benchmark.run_stress_test(30)
-            console.print(f"\n[{OK}]━━━ CPU STRESS TEST ━━━[/]")
-            console.print(f"  Operations: [{C1}]{r.get('cpu_ops', 0):,}[/]")
-            console.print(f"  Score: [{C3}]{r.get('score', 0)}[/]")
-            if r.get('completed'):
-                console.print(f"  Status: [{OK}]Completed[/]")
-            inp()
-        elif ch == "6":
-            console.print(f"\n[{WARN}]⏳ Running GPU benchmark (15s)...[/]")
-            console.print(f"[{DIM}]Heavy rendering test...[/]")
-            r = benchmark.run_gpu_benchmark(15)
-            console.print(f"\n[{OK}]━━━ GPU BENCHMARK ━━━[/]")
-            console.print(f"  FPS: [{C1}]{r['fps']}[/]")
-            console.print(f"  Frames: [{C1}]{r['frames']}[/]")
-            console.print(f"  Rectangles: [{C1}]{r.get('rectangles', 0):,}[/]")
-            console.print(f"  Pixels: [{C1}]{r.get('pixels', 0):,}[/]")
-            console.print(f"  Score: [{C3}]{r['score']}[/]")
+            gpu_r = benchmark.run_gpu_benchmark(15)
+            console.print(f"[{OK}]✓ GPU Done![/]")
+            console.print(f"  FPS: [{C1}]{gpu_r['fps']}[/]")
+            console.print(f"  Shapes: [{C1}]{gpu_r['shapes']:,}[/]")
+            console.print(f"  GPU Score: [{C3}]{gpu_r['score']}[/]")
+            
+            total = cpu_r['score'] + gpu_r['score']
+            console.print(f"\n[{OK}]━━━ TOTAL SCORE: [{C3}]{total}[/] ━━━[/]")
             inp()
 
 
