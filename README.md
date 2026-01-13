@@ -50,7 +50,7 @@ The easiest way to install and run MeoBoost. Automatically installs Python if mi
 2. Paste and run the following command:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/meohunterr/MeoBoost/main/run.ps1 -OutFile run.ps1; .\run.ps1
+iwr -useb https://raw.githubusercontent.com/meohunterr/MeoBoost/main/install.ps1 -OutFile install.ps1; .\install.ps1
 ```
 
 ### Option 2: Manual Installation
