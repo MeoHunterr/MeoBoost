@@ -96,6 +96,18 @@ If you do not agree to these terms, please do not use MeoBoost.
 
 ---
 
+## 🤝 Support
+
+If you find **MeoBoost** useful, please consider supporting the project:
+
+- ⭐ **Star on GitHub**: Help others discover the project.
+- ☕ **Donate**: Support the developer via **Techcombank** (`6668885688` - Nguyen Minh Tuan).
+- 💬 **Share**: Spread the word to your friends and communities.
+- 🐛 **Report Bugs**: [Open an issue](https://github.com/meohunterr/MeoBoost/issues) if you encounter problems.
+- 🌍 **Contribute**: Submit Pull Requests or help with translations.
+
+---
+
 ## 📜 License
 
 This project is licensed under the [GPL-3.0 License](LICENSE).
