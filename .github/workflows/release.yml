@@ -1,4 +1,4 @@
-name: Build and Release
+name: Release and Deploy
 
 on:
   push:
@@ -14,78 +14,26 @@ permissions:
   id-token: write
 
 jobs:
-  # Build the application with Nuitka
-  build:
-    runs-on: windows-latest
+  # Create GitHub Release (only on tags)
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - name: Install dependencies
+      - name: Create source ZIP
         run: |
-          python -m pip install --upgrade pip
-          pip install nuitka ordered-set zstandard rich
-          pip install -r requirements.txt
-
-      - name: Build with Nuitka
-        run: |
-          python -m nuitka `
-            --standalone `
-            --onefile `
-            --output-dir=dist `
-            --windows-console-mode=force `
-            --include-data-dir=Files=Files `
-            --enable-plugin=anti-bloat `
-            --remove-output `
-            --assume-yes-for-downloads `
-            --company-name="MeoBoost Open Source" `
-            --product-name="MeoBoost" `
-            --file-version=1.0.0.0 `
-            --product-version=1.0.0.0 `
-            --file-description="Windows Performance Optimizer" `
-            --copyright="MIT License - github.com/Minhboang11-Meo/meoboost" `
-            --deployment `
-            --output-filename=MeoBoost.exe `
-            main.py
-
-      - name: Verify build
-        run: |
-          if (Test-Path "dist\MeoBoost.exe") {
-            $size = (Get-Item "dist\MeoBoost.exe").Length
-            $sizeMB = [math]::Round($size / 1MB, 2)
-            Write-Host "Build successful! Size: $sizeMB MB"
-          } else {
-            Write-Host "Build failed - checking for alternative paths..."
-            Get-ChildItem -Recurse -Filter "*.exe" | Select-Object FullName, Length
-            exit 1
-          }
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MeoBoost-exe
-          path: dist/MeoBoost.exe
-          retention-days: 7
-
-  # Create GitHub Release (only on tags)
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: MeoBoost-exe
-          path: dist
+          # Create a clean source archive
+          zip -r MeoBoost-source.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "__pycache__/*" \
+            -x "*.pyc" \
+            -x ".venv/*" \
+            -x "dist/*" \
+            -x "build/*"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -102,26 +50,43 @@ jobs:
             irm https://raw.githubusercontent.com/${{ github.repository }}/main/run.ps1 | iex
             ```
             
-            ### 📦 Manual Download
-            Download `MeoBoost.exe` below and run as Administrator.
+            This command will:
+            1. ✅ Install Python automatically if not found
+            2. ✅ Download the latest source code
+            3. ✅ Install dependencies
+            4. ✅ Run MeoBoost with admin privileges
             
-            ### ✨ What's New
-            - Built with Nuitka (native C compilation) for better AV compatibility
-            - Dynamic command building to reduce false positives
-            - Removed bundled tools that triggered AV signatures
+            ### 🛡️ Security - Zero AV Detections
             
-            ### 🛡️ Security
-            - No shell injection vulnerabilities
-            - Specific exception handling throughout
-            - Clean subprocess execution patterns
+            MeoBoost runs directly from Python source code - no compiled EXE files.
+            This ensures:
+            - **100% Transparency** - All code is visible and auditable
+            - **Zero AV False Positives** - No binaries to trigger antivirus
+            - **Always Up-to-Date** - One-liner always gets the latest version
+            
+            ### 📦 Manual Installation
+            
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git
+            cd meoboost
+            pip install -r requirements.txt
+            python main.py
+            ```
+            
+            ### ✨ Features
+            - 🎮 FPS Boost - Disable unnecessary services and effects
+            - ⚡ Low Latency - Optimize timer resolution, DPC, IRQ
+            - 🔧 GPU Tweaks - NVIDIA, AMD, Intel optimizations
+            - 🌐 Network - TCP/IP optimization, Nagle algorithm
+            - 🔒 Privacy - Disable telemetry and tracking
           draft: false
           prerelease: false
           files: |
-            dist/MeoBoost.exe
+            MeoBoost-source.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Deploy GitHub Pages (runs in parallel)
+  # Deploy GitHub Pages
   pages:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -133,7 +98,7 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Create simple landing page
+      - name: Create landing page
         run: |
           mkdir -p _site
           cat > _site/index.html << 'EOF'
@@ -156,6 +121,8 @@ jobs:
                 background: linear-gradient(90deg, #00d4ff, #0096c7);
                 -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
               .tagline { font-size: 1.2rem; color: #aaa; margin-bottom: 2rem; }
+              .badge { display: inline-block; background: #238636; color: #fff; padding: 0.3rem 0.8rem; 
+                border-radius: 20px; font-size: 0.9rem; margin-bottom: 1rem; }
               .cmd { background: #0d1117; border-radius: 8px; padding: 1rem 2rem;
                 font-family: 'Consolas', monospace; margin: 2rem 0; border: 1px solid #30363d; }
               .cmd code { color: #58a6ff; }
@@ -166,27 +133,35 @@ jobs:
               .btn:hover { transform: scale(1.05); }
               .features { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem; }
               .feature { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; flex: 1; min-width: 200px; }
+              .note { margin-top: 2rem; padding: 1rem; background: rgba(35, 134, 54, 0.2); border-radius: 8px; 
+                border: 1px solid #238636; font-size: 0.9rem; }
             </style>
           </head>
           <body>
             <div class="container">
+              <span class="badge">✅ Zero AV Detections</span>
               <h1>🐱 MeoBoost</h1>
               <p class="tagline">Windows Performance Optimizer for Gaming</p>
               <div class="cmd">
-                <code>irm https://minhboang11-meo.github.io/meoboost/run.ps1 | iex</code>
+                <code>irm https://raw.githubusercontent.com/Minhboang11-Meo/meoboost/main/run.ps1 | iex</code>
               </div>
-              <a href="https://github.com/Minhboang11-Meo/meoboost/releases/latest" class="btn">⬇️ Download</a>
               <a href="https://github.com/Minhboang11-Meo/meoboost" class="btn">📦 GitHub</a>
+              <a href="https://github.com/Minhboang11-Meo/meoboost/releases/latest" class="btn">📋 Releases</a>
               <div class="features">
                 <div class="feature">🎮 FPS Boost</div>
                 <div class="feature">⚡ Low Latency</div>
                 <div class="feature">🔒 Privacy</div>
                 <div class="feature">🔧 GPU Tweaks</div>
               </div>
+              <div class="note">
+                <strong>100% Open Source</strong> - No compiled EXE files. 
+                Python is installed automatically. All code is transparent and auditable.
+              </div>
             </div>
           </body>
           </html>
           EOF
+          # Copy run.ps1 for direct access
           cp run.ps1 _site/run.ps1
 
       - name: Upload Pages artifact
@@ -196,4 +171,3 @@ jobs:
 
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
-

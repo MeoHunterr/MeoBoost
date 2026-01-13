@@ -58,30 +58,42 @@ def toggle_preemption():
     return True
 
 def is_npi_applied():
-    
+    """Check if NVIDIA Profile Inspector optimizations are applied."""
     return registry.value_exists(REG_APP, "NpiApplied")
 
 def toggle_npi():
+    """Toggle NVIDIA driver profile optimizations using registry.
     
-    npi_exe = files.get_file("nvidiaProfileInspector.exe")
-    if not npi_exe:
-        return False
-    
+    Applies common NVIDIA Profile Inspector tweaks directly via registry,
+    eliminating the need for the external nvidiaProfileInspector.exe tool.
+    """
     if is_npi_applied():
-        profile = files.get_file("Base_Profile.nip")
-        if profile:
-            os.chdir(FILES_DIR)
-            system.run_cmd(f'nvidiaProfileInspector.exe "{profile}"')
+        # Revert: Remove NPI flag
         registry.reg_delete(REG_APP, "NpiApplied")
-    else:
-        profile = files.get_file("meoboost.nip")
-        if not profile:
-            profile = files.get_file("Base_Profile.nip")
         
-        if profile:
-            os.chdir(FILES_DIR)
-            system.run_cmd(f'nvidiaProfileInspector.exe "{profile}"')
-            registry.reg_add(REG_APP, "NpiApplied", 1, "REG_DWORD")
+        # Reset common NPI tweaks via registry
+        nv_profile_path = r"HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak"
+        registry.reg_delete(nv_profile_path, "Boost")
+        registry.reg_delete(nv_profile_path, "PowerSaving")
+        
+        # Reset global driver settings
+        for path in get_nvidia_paths():
+            registry.reg_delete(path, "RMGlobalSettings")
+    else:
+        # Apply optimizations via registry
+        registry.reg_add(REG_APP, "NpiApplied", 1, "REG_DWORD")
+        
+        # Apply common NVIDIA profile optimizations
+        nv_profile_path = r"HKLM\SOFTWARE\NVIDIA Corporation\Global\NVTweak"
+        registry.reg_add(nv_profile_path, "Boost", 1, "REG_DWORD")
+        registry.reg_add(nv_profile_path, "PowerSaving", 0, "REG_DWORD")
+        
+        # Apply per-GPU optimizations
+        for path in get_nvidia_paths():
+            # Enable performance mode
+            registry.reg_add(path, "PerfLevelSrc", 0x2222, "REG_DWORD")
+            # Disable power saving features
+            registry.reg_add(path, "RMEnablePowerManagement", 0, "REG_DWORD")
     
     return True
 

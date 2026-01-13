@@ -124,27 +124,45 @@ def is_audio_latency_on():
 
 
 def toggle_audio_latency():
-    """Toggle audio latency optimization using Windows Scheduled Task."""
-    real = files.get_file("REAL.exe")
+    """Toggle audio latency optimization using native Windows timer resolution.
     
-    if not real:
-        return False
-    
+    Uses PowerShell to set timer resolution instead of external REAL.exe.
+    This achieves similar audio latency improvements without third-party tools.
+    """
     task_name = "MeoBoostAudioLatency"
     
     if is_audio_latency_on():
-        # Disable: Delete scheduled task and stop process
+        # Disable: Delete scheduled task
         system.run_cmd(f'schtasks /delete /tn "{task_name}" /f')
-        system.kill_process("REAL.exe")
     else:
-        # Enable: Create scheduled task to run at logon with high priority
-        # First, ensure any old task is removed
+        # Enable: Create scheduled task that sets timer resolution at logon
+        # Use native PowerShell to set high-resolution timer
+        ps_script = '''
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class TimerRes {
+    [DllImport("ntdll.dll", SetLastError=true)]
+    public static extern int NtSetTimerResolution(int DesiredResolution, bool SetResolution, out int CurrentResolution);
+}
+"@
+$current = 0
+[TimerRes]::NtSetTimerResolution(5000, $true, [ref]$current)
+Start-Sleep -Seconds 86400
+'''
+        # Save script to a temp location
+        script_path = os.path.join(os.environ.get("USERPROFILE", ""), ".meoboost", "timer_res.ps1")
+        os.makedirs(os.path.dirname(script_path), exist_ok=True)
+        with open(script_path, "w", encoding="utf-8") as f:
+            f.write(ps_script)
+        
+        # Delete old task if exists
         system.run_cmd(f'schtasks /delete /tn "{task_name}" /f 2>nul')
         
         # Create new task that runs at logon
         create_cmd = (
             f'schtasks /create /tn "{task_name}" '
-            f'/tr "{real}" '
+            f'/tr "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \\"{script_path}\\"" '
             f'/sc onlogon '
             f'/rl highest '
             f'/f'

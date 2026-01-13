@@ -52,31 +52,83 @@ def toggle_svchost():
     return True
 
 def is_timer_on():
-    
-    return system.service_running("STR")
+    """Check if MeoBoost timer resolution service is running."""
+    # Check if our scheduled task exists and is enabled
+    code, out, _ = system.run_cmd('schtasks /query /tn "MeoBoostTimerRes" 2>nul')
+    return code == 0 and "Ready" in out
 
 def toggle_timer():
+    """Toggle timer resolution optimization using native PowerShell.
+    
+    Uses PowerShell with NtSetTimerResolution instead of external .exe files.
+    This achieves the same 0.5ms timer resolution without third-party tools.
+    """
+    task_name = "MeoBoostTimerRes"
+    script_dir = os.path.join(os.environ.get("USERPROFILE", ""), ".meoboost")
+    script_path = os.path.join(script_dir, "timer_service.ps1")
     
     if is_timer_on():
-        system.set_service_startup("STR", "disabled")
-        system.stop_service("STR")
+        # Disable: Delete scheduled task and reset bcdedit settings
+        system.run_cmd(f'schtasks /delete /tn "{task_name}" /f')
         system.bcdedit("/deletevalue useplatformclock")
         system.bcdedit("/deletevalue useplatformtick")
         system.bcdedit("/deletevalue disabledynamictick")
+        
+        # Kill any running PowerShell timer process
+        system.run_cmd('taskkill /f /im powershell.exe /fi "WINDOWTITLE eq MeoBoostTimer" 2>nul')
     else:
-        exe_path = files.get_file("SetTimerResolutionService.exe")
-        if not exe_path:
-            return False
+        # Create timer resolution script using native Windows API
+        ps_script = '''
+# MeoBoost Timer Resolution Service
+# Sets Windows timer resolution to 0.5ms for reduced input latency
+$Host.UI.RawUI.WindowTitle = "MeoBoostTimer"
+
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class NtTimer {
+    [DllImport("ntdll.dll", SetLastError=true)]
+    public static extern int NtSetTimerResolution(int DesiredResolution, bool SetResolution, out int CurrentResolution);
+    
+    [DllImport("ntdll.dll", SetLastError=true)]
+    public static extern int NtQueryTimerResolution(out int MinimumResolution, out int MaximumResolution, out int CurrentResolution);
+}
+"@
+
+# Query current timer resolution
+$min = 0; $max = 0; $cur = 0
+[NtTimer]::NtQueryTimerResolution([ref]$min, [ref]$max, [ref]$cur) | Out-Null
+
+# Set to maximum resolution (0.5ms = 5000 * 100ns)
+$newRes = 0
+[NtTimer]::NtSetTimerResolution(5000, $true, [ref]$newRes) | Out-Null
+
+# Keep running to maintain the resolution
+while ($true) {
+    Start-Sleep -Seconds 60
+    # Refresh timer resolution periodically
+    [NtTimer]::NtSetTimerResolution(5000, $true, [ref]$newRes) | Out-Null
+}
+'''
+        # Save script
+        os.makedirs(script_dir, exist_ok=True)
+        with open(script_path, "w", encoding="utf-8") as f:
+            f.write(ps_script)
         
-        if not system.service_exists("STR"):
-            dotnet = os.path.join(os.environ.get("SYSTEMROOT", r"C:\Windows"),
-                                   r"Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe")
-            if os.path.exists(dotnet):
-                os.chdir(FILES_DIR)
-                system.run_cmd(f'"{dotnet}" /i SetTimerResolutionService.exe')
+        # Delete old task if exists
+        system.run_cmd(f'schtasks /delete /tn "{task_name}" /f 2>nul')
         
-        system.set_service_startup("STR", "auto")
-        system.start_service("STR")
+        # Create scheduled task to run at logon
+        create_cmd = (
+            f'schtasks /create /tn "{task_name}" '
+            f'/tr "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File \\"{script_path}\\"" '
+            f'/sc onlogon '
+            f'/rl highest '
+            f'/f'
+        )
+        system.run_cmd(create_cmd)
+        
+        # Apply bcdedit settings for timer
         system.bcdedit("/set disabledynamictick yes")
         system.bcdedit("/deletevalue useplatformclock")
         
@@ -84,6 +136,9 @@ def toggle_timer():
             system.bcdedit("/deletevalue useplatformtick")
         else:
             system.bcdedit("/set useplatformtick yes")
+        
+        # Start the task now
+        system.run_cmd(f'schtasks /run /tn "{task_name}"')
     
     return True
 
