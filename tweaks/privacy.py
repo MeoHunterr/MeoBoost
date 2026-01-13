@@ -132,6 +132,9 @@ def apply_all_privacy():
     toggle_activity() if not is_activity_off() else None
     toggle_ads() if not is_ads_off() else None
     toggle_feedback() if not is_feedback_off() else None
+    toggle_copilot() if not is_copilot_off() else None
+    toggle_bg_apps() if not is_bg_apps_off() else None
+    toggle_bing_search() if not is_bing_search_off() else None
     
     services = [
         "DiagTrack", "dmwappushservice", "diagnosticshub.standardcollector.service",
@@ -152,4 +155,50 @@ def apply_all_privacy():
     for task in tasks:
         system.run_cmd(f'schtasks /change /tn "{task}" /disable')
     
+    return True
+
+
+# === WinUtil Privacy Tweaks ===
+
+def is_copilot_off():
+    val = registry.read_value(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot")
+    return val == 1
+
+
+def toggle_copilot():
+    if is_copilot_off():
+        registry.reg_delete(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot")
+        registry.reg_delete(r"HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot")
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowCopilotButton", 1, "REG_DWORD")
+    else:
+        registry.reg_add(r"HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, "REG_DWORD")
+        registry.reg_add(r"HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, "REG_DWORD")
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowCopilotButton", 0, "REG_DWORD")
+        registry.reg_add(r"HKLM\SOFTWARE\Microsoft\Windows\Shell\Copilot", "IsCopilotAvailable", 0, "REG_DWORD")
+    return True
+
+
+def is_bg_apps_off():
+    val = registry.read_value(r"HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications", "GlobalUserDisabled")
+    return val == 1
+
+
+def toggle_bg_apps():
+    if is_bg_apps_off():
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications", "GlobalUserDisabled", 0, "REG_DWORD")
+    else:
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications", "GlobalUserDisabled", 1, "REG_DWORD")
+    return True
+
+
+def is_bing_search_off():
+    val = registry.read_value(r"HKCU\Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled")
+    return val == 0
+
+
+def toggle_bing_search():
+    if is_bing_search_off():
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 1, "REG_DWORD")
+    else:
+        registry.reg_add(r"HKCU\Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 0, "REG_DWORD")
     return True

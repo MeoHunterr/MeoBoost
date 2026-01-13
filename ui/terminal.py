@@ -15,7 +15,7 @@ from utils import system, backup
 
 from tweaks import power, nvidia, amd, intel, gpu_common, network, memory, input, misc
 from tweaks import system as sys_tweaks
-from tweaks import privacy, fps, winutil
+from tweaks import privacy, fps
 
 
 console = Console()
@@ -131,8 +131,8 @@ def main(beta=False):
 def menu_optimize(pg=1):
     gpu = system.get_gpu_type()
     laptop = system.is_laptop()
-    # Pages: 1=Basic, 2=FPS, 3=FPS2, 4=GPU, 5=Network, 6=WinUtil
-    total_pages = 6
+    # Pages: 1=Basic, 2=FPS, 3=FPS2, 4=GPU, 5=Network
+    total_pages = 5
     
     while True:
         logo()
@@ -227,7 +227,7 @@ def menu_optimize(pg=1):
             elif gpu == "intel":
                 items.append(item("2", "intel_vram", intel.is_vram_increased()))
                 acts["2"] = intel.toggle_vram
-        elif pg == 5:
+        else:
             # Network tweaks
             console.print(f"[{C3}]◈[/] [{C1}]{t('network_section')}[/]", justify="center")
             console.print()
@@ -237,29 +237,6 @@ def menu_optimize(pg=1):
                 item("3", "netsh", network.is_netsh_on()),
             ]
             acts = {"1": network.toggle_tcpip, "2": network.toggle_nic, "3": network.toggle_netsh}
-        else:
-            # WinUtil tweaks
-            console.print(f"[{C3}]◈[/] [{C1}]WinUtil[/]", justify="center")
-            console.print()
-            items = [
-                item("1", "copilot", winutil.is_copilot_off()),
-                item("2", "bg_apps", winutil.is_bg_apps_off()),
-                item("3", "end_task", winutil.is_end_task_on()),
-                item("4", "classic_menu", winutil.is_classic_menu_on()),
-                item("5", "dark_mode", winutil.is_dark_mode_on()),
-                item("6", "file_ext", winutil.is_file_ext_on()),
-                item("7", "hidden_files", winutil.is_hidden_files_on()),
-                item("8", "bing_search", winutil.is_bing_search_off()),
-                item("9", "storage_sense", winutil.is_storage_sense_off()),
-                f"[{WARN}][A][/] {tw('all_winutil', 'name')}\n[{DIM}]{tw('all_winutil', 'desc')}[/]\n[{WARN}]{tw('all_winutil', 'risk')}[/]",
-            ]
-            acts = {
-                "1": winutil.toggle_copilot, "2": winutil.toggle_bg_apps,
-                "3": winutil.toggle_end_task, "4": winutil.toggle_classic_menu,
-                "5": winutil.toggle_dark_mode, "6": winutil.toggle_file_ext,
-                "7": winutil.toggle_hidden_files, "8": winutil.toggle_bing_search,
-                "9": winutil.toggle_storage_sense, "a": winutil.apply_all,
-            }
         
         grid(items, 3)
         footer(pg, total_pages)
@@ -284,13 +261,17 @@ def menu_privacy():
             item("4", "location", privacy.is_location_off()),
             item("5", "ads", privacy.is_ads_off()),
             item("6", "feedback", privacy.is_feedback_off()),
+            item("7", "copilot", privacy.is_copilot_off()),
+            item("8", "bg_apps", privacy.is_bg_apps_off()),
+            item("9", "bing_search", privacy.is_bing_search_off()),
             f"[{WARN}][A][/] {tw('all_privacy', 'name')}\n[{DIM}]{tw('all_privacy', 'desc')}[/]\n[{OK}]{tw('all_privacy', 'risk')}[/]",
         ]
         acts = {
             "1": privacy.toggle_telemetry, "2": privacy.toggle_cortana,
             "3": privacy.toggle_activity, "4": privacy.toggle_location,
             "5": privacy.toggle_ads, "6": privacy.toggle_feedback,
-            "a": privacy.apply_all_privacy,
+            "7": privacy.toggle_copilot, "8": privacy.toggle_bg_apps,
+            "9": privacy.toggle_bing_search, "a": privacy.apply_all_privacy,
         }
         grid(items, 3)
         footer()

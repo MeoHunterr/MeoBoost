@@ -29,16 +29,15 @@ jobs:
           pip install pyinstaller rich
           pip install -r requirements.txt
 
-      - name: Compress Files
-        run: python compress_files.py
-
-      - name: Build optimized executable
+      - name: Build executable
         run: |
           pyinstaller --noconfirm --onefile --console --name "MeoBoost" `
-            --add-data "FilesCompressed;FilesCompressed" `
+            --add-data "Files;Files" `
             --hidden-import "rich" `
             --hidden-import "rich.console" `
             --hidden-import "rich.table" `
+            --hidden-import "rich.box" `
+            --hidden-import "tweaks" `
             --hidden-import "tweaks.power" `
             --hidden-import "tweaks.nvidia" `
             --hidden-import "tweaks.amd" `
@@ -51,23 +50,16 @@ jobs:
             --hidden-import "tweaks.misc" `
             --hidden-import "tweaks.privacy" `
             --hidden-import "tweaks.fps" `
-            --hidden-import "tweaks.winutil" `
+            --hidden-import "utils" `
             --hidden-import "utils.registry" `
             --hidden-import "utils.system" `
             --hidden-import "utils.backup" `
             --hidden-import "utils.files" `
             --hidden-import "utils.settings" `
             --hidden-import "utils.benchmark" `
+            --hidden-import "ui" `
             --hidden-import "ui.terminal" `
-            --exclude-module "matplotlib" `
-            --exclude-module "numpy" `
-            --exclude-module "pandas" `
-            --exclude-module "PIL" `
-            --exclude-module "tkinter" `
-            --exclude-module "unittest" `
-            --exclude-module "pydoc" `
-            --exclude-module "test" `
-            --strip `
+            --collect-all "rich" `
             --uac-admin `
             main.py
 
@@ -103,7 +95,7 @@ jobs:
             ### ✨ Features
             - Windows Performance Optimizer for Gaming
             - FPS Boost & Input Lag Reduction
-            - Privacy Tweaks & WinUtil Integration
+            - Privacy Tweaks (Copilot, Telemetry, etc.)
             - No Python required!
           draft: false
           prerelease: false
