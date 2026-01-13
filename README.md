@@ -1,146 +1,106 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?style=flat-square&logo=windows" alt="Windows" />
-  <img src="https://img.shields.io/badge/Python-3.8--3.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/AV%20Safe-0%20Detections-brightgreen?style=flat-square" alt="AV Safe" />
+  <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?style=for-the-badge&logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="License" />
+  <a href="https://www.virustotal.com/gui/file/6285bb104b4788c661e3720a10fce79d9c5398bac810d1658375559ccde1bf27?nocache=1">
+    <img src="https://img.shields.io/badge/AV%20Safe-100%25-brightgreen?style=for-the-badge" alt="AV Safe" />
+  </a>
 </p>
 
-<h1 align="center">MeoBoost</h1>
+<h1 align="center">🚀 MeoBoost</h1>
 
 <p align="center">
-  <b>Windows Performance Optimizer for Gaming</b><br/>
-  Reduce input lag • Boost FPS • Optimize system resources
+  <b>The Ultimate Windows Performance Optimizer for Gamers & Power Users</b><br/>
+  Reduce Input Lag • Maximize FPS • Optimize System Latency
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#security">Security</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-security">Security</a> •
+  <a href="#-disclaimer">Disclaimer</a>
 </p>
 
 ---
 
-## Features
+## ✨ Features
 
-🎮 **FPS Boost** — Disable unnecessary visual effects, services, and background processes
+### 🎮 Gaming Performance
+- **FPS Boost**: Intelligent disabling of background services and visual effects to free up resources.
+- **Input Lag Reduction**: Optimizes timer resolution (0.5ms), DPC latency, and IRQ priority.
+- **GPU Optimization**: Specific tweaks for NVIDIA, AMD, and Intel GPUs to maximize throughput.
 
-⚡ **Low Latency** — Optimize timer resolution, DPC, IRQ, and MMCSS settings
+### ⚡ System Latency
+- **Network Tuning**: TCP/IP stack optimization, Nagle algorithm disable, and NIC offloading adjustments.
+- **Power Management**: Custom "MeoBoost Ultimate" power plan for consistent high-performance clock speeds.
+- **Memory Optimization**: Native memory cleaning and working set trimming without external tools.
 
-🔧 **GPU Tweaks** — NVIDIA, AMD, and Intel specific optimizations
+### 🛡️ Privacy & Security
+- **Telemetry Blocking**: Disables Windows telemetry, tracking, and data collection.
+- **Debloat**: Removes Cortana, Copilot, and other unused system components.
+- **Safe & Open**: 100% Open Source Python code. No compiled EXEs, no hidden malware.
 
-🌐 **Network** — TCP/IP stack optimization, Nagle algorithm, NIC tuning
+---
 
-🔒 **Privacy** — Disable telemetry, Cortana, Copilot, and tracking features
+## 🚀 Quick Start
 
-🛡️ **100% Open Source** — No compiled EXE files, runs directly from Python source code
+### Option 1: The "One-Liner" (Recommended)
+The easiest way to install and run MeoBoost. Automatically installs Python if missing.
 
-## ⚡ Quick Start
-
-### One-Liner (Recommended)
-
-Run this command in PowerShell (as Administrator):
+1. Open **PowerShell** as Administrator.
+2. Paste and run the following command:
 
 ```powershell
-irm https://raw.githubusercontent.com/Minhboang11-Meo/meoboost/main/run.ps1 | iex
+irm https://raw.githubusercontent.com/meohunterr/MeoBoost/main/run.ps1 | iex
 ```
 
-> **Python is installed automatically** if not found on your system.
-> 
-> No EXE files — runs directly from Python source code for maximum transparency.
-
----
-
-### Run from Source (Manual)
+### Option 2: Manual Installation
+For users who prefer to review the code first.
 
 ```bash
-git clone https://github.com/Minhboang11-Meo/meoboost.git
-cd meoboost
+# Clone the repository
+git clone https://github.com/meohunterr/MeoBoost.git
+cd MeoBoost
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the optimizer
 python main.py
 ```
 
-## Requirements
+---
 
-- Windows 10/11
-- Administrator privileges
-- Python 3.8-3.12 (auto-installed by one-liner if missing)
+## 🔒 Security
 
-## Security
+MeoBoost is built with **Transparency** and **Safety** in mind.
 
-MeoBoost is designed with **zero AV false positives** as a primary goal:
+- **Zero False Positives**: We do not use compiled `.exe` files (which often trigger false antivirus alerts).
+- **Open Source**: Every line of code is visible. You can audit exactly what the tool does.
+- **Native APIs**: We use native Windows APIs and PowerShell commands instead of bundling suspicious third-party binaries.
 
-### Why No EXE Files?
+---
 
-- **100% Transparent** — All code is visible Python source, nothing hidden
-- **Zero AV Detections** — No compiled binaries means no false positives
-- **User Trust** — You can audit every line of code before running
-- **Easy Updates** — Always get the latest version directly from GitHub
+## ⚠️ Disclaimer
 
-### Code Quality
+**PLEASE READ CAREFULLY BEFORE USE**
 
-- ✅ No shell injection vulnerabilities (`subprocess.run(shell=False)`)
-- ✅ Specific exception handling (no bare `except:` blocks)
-- ✅ Native Windows APIs via PowerShell (no bundled third-party EXEs)
-- ✅ Dynamic command building with Base64 encoding for sensitive patterns
+MeoBoost is provided **"AS IS"** without any warranty of any kind, either expressed or implied, including but not limited to the implied warranties of merchantability and fitness for a particular purpose.
 
-### What Changed?
+By using this software, you acknowledge and agree that:
+1. **Use at Your Own Risk**: You are solely responsible for any changes made to your system.
+2. **Liability**: The developers (meohunterr) and contributors shall **NOT** be held liable for any damage to your hardware, software, data loss, system instability, or any other negative consequences resulting from the use of this tool.
+3. **System Modification**: This tool modifies system registry keys, services, and power settings. While tested thoroughly, unexpected conflicts with specific hardware or software configurations may occur.
+4. **Backup**: It is **strongly recommended** to create a System Restore Point or a full backup of your important data before applying any optimizations.
 
-Previous versions bundled third-party tools that triggered AV false positives:
-- ~~REAL.exe~~ → Replaced with native PowerShell timer resolution
-- ~~SetTimerResolutionService.exe~~ → Replaced with PowerShell scheduled task
-- ~~nvidiaProfileInspector.exe~~ → Replaced with direct registry modifications
-- ~~DDU.zip~~ → Users download from official source when needed
+If you do not agree to these terms, please do not use MeoBoost.
 
-## Project Structure
+---
 
-```
-├── main.py              # Entry point
-├── config.py            # Configuration
-├── lang.py              # Localization (VI/EN)
-├── run.ps1              # One-liner launcher (auto-installs Python)
-├── requirements.txt     # Python dependencies
-├── tweaks/              # Optimization modules
-│   ├── power.py         # Power plan optimizations
-│   ├── nvidia.py        # NVIDIA GPU tweaks
-│   ├── amd.py           # AMD GPU tweaks
-│   ├── network.py       # Network optimizations
-│   ├── fps.py           # FPS boost tweaks
-│   ├── privacy.py       # Privacy settings
-│   └── misc.py          # Tools and utilities
-├── ui/                  # Terminal interface
-│   └── terminal.py      # Rich console UI
-├── utils/               # Helper functions
-│   ├── system.py        # System commands
-│   ├── registry.py      # Registry operations
-│   └── backup.py        # Backup functionality
-└── Files/               # Resources (power plans, profiles)
-```
+## 📜 License
 
-## How It Works
+This project is licensed under the [GPL-3.0 License](LICENSE).
 
-1. **One-liner downloads** `run.ps1` from GitHub
-2. **run.ps1 checks** if Python 3.8-3.12 is installed
-3. **If Python missing**, it downloads and installs Python automatically
-4. **Downloads source code** as ZIP from the latest release
-5. **Installs dependencies** via pip
-6. **Runs main.py** with administrator privileges
-
-All downloads are from official sources:
-- Python from `python.org`
-- Source code from this GitHub repository
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first.
-
-### Code Guidelines
-- Use specific exception types, not bare `except:`
-- Prefer `subprocess.run(shell=False)` over `shell=True`
-- Use native Windows commands/PowerShell instead of bundled EXEs
-- Add docstrings to all functions
-- Follow existing code style
-
-## License
-
-[GPL-3.0](LICENSE)
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/meohunterr">meohunterr</a>
+</p>

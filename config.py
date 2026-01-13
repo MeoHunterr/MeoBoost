@@ -2,7 +2,7 @@ import os, sys
 
 APP_NAME = "MeoBoost"
 VERSION = "1.1.0"
-GITHUB_URL = "github.com/Minhboang11-Meo/meoboost"
+GITHUB_URL = "github.com/meohunterr/MeoBoost"
 
 # pyinstaller puts stuff in _MEIPASS
 if getattr(sys, 'frozen', False):

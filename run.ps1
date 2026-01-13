@@ -6,8 +6,8 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$Repo = "Minhboang11-Meo/meoboost"
-$Dir = Join-Path $env:USERPROFILE ".meoboost"
+$Repo = "meohunterr/MeoBoost"
+$Dir = Join-Path $env:USERPROFILE ".MeoBoost"
 $Src = Join-Path $Dir "source"
 
 function Write-S { param([string]$M) Write-Host "  [*] $M" -ForegroundColor Yellow }
@@ -60,10 +60,10 @@ if (-not $PyCmd) {
 # Download source
 Write-S "Downloading source code..."
 if (-not (Test-Path $Dir)) { New-Item -ItemType Directory -Path $Dir -Force | Out-Null }
-$zipPath = Join-Path $env:TEMP "meoboost.zip"
+$zipPath = Join-Path $env:TEMP "MeoBoost.zip"
 Invoke-WebRequest -Uri "https://github.com/$Repo/archive/refs/heads/main.zip" -OutFile $zipPath -UseBasicParsing
 if (Test-Path $Src) { Remove-Item $Src -Recurse -Force }
-$extractDir = Join-Path $env:TEMP "meoboost_ext"
+$extractDir = Join-Path $env:TEMP "MeoBoost_ext"
 if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
 Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 $extracted = Get-ChildItem $extractDir -Directory | Select-Object -First 1

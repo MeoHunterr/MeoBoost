@@ -17,9 +17,9 @@ def toggle_power_plan():
         system.run_cmd("powercfg -restoredefaultschemes")
         return True
     else:
-        pow_file = files.get_file("meoboost.pow")
+        pow_file = files.get_file("MeoBoost.pow")
         if not pow_file:
-            pow_file = files.get_file("MeoBoost.pow")  # Fallback
+            pow_file = files.get_file("meoboost.pow")  # Fallback
         
         if not pow_file:
             return False
@@ -64,7 +64,7 @@ def toggle_timer():
     This achieves the same 0.5ms timer resolution without third-party tools.
     """
     task_name = "MeoBoostTimerRes"
-    script_dir = os.path.join(os.environ.get("USERPROFILE", ""), ".meoboost")
+    script_dir = os.path.join(os.environ.get("USERPROFILE", ""), ".MeoBoost")
     script_path = os.path.join(script_dir, "timer_service.ps1")
     
     if is_timer_on():

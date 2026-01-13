@@ -151,7 +151,7 @@ $current = 0
 Start-Sleep -Seconds 86400
 '''
         # Save script to a temp location
-        script_path = os.path.join(os.environ.get("USERPROFILE", ""), ".meoboost", "timer_res.ps1")
+        script_path = os.path.join(os.environ.get("USERPROFILE", ""), ".MeoBoost", "timer_res.ps1")
         os.makedirs(os.path.dirname(script_path), exist_ok=True)
         with open(script_path, "w", encoding="utf-8") as f:
             f.write(ps_script)

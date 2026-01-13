@@ -504,7 +504,7 @@ def ui_export_settings():
     logo()
     console.print(f"[{C1}]─── Export Settings ───[/]", justify="center")
     console.print()
-    default_path = os.path.join(os.path.expanduser("~"), "Desktop", "meoboost_settings.json")
+    default_path = os.path.join(os.path.expanduser("~"), "Desktop", "MeoBoost_settings.json")
     console.print(f"[{DIM}]Default: {default_path}[/]")
     console.print(f"\n[{C2}]Enter path (or press Enter for default):[/]")
     path = inp() or default_path
