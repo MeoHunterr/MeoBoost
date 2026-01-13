@@ -8,6 +8,10 @@ import subprocess
 
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
+from rich.layout import Layout
+from rich.align import Align
+from rich.text import Text
 from rich import box
 
 from config import VERSION, APP_NAME, DATA_DIR, GITHUB_URL
@@ -47,15 +51,31 @@ def item(key, tid, on, na=False):
     return f"[{C2}][{key}][/] {name} {badge(on, na)}\n[{DIM}]{desc}[/]\n[{rc}]{risk}[/]"
 
 
-def logo():
+def logo(latest_ver=None, update_avail=False):
     cls()
-    console.print(f"[{C1}]╔{'═'*68}╗[/]", justify="center")
-    console.print(f"[{C1}]║                                                                    ║[/]", justify="center")
-    console.print(f"[{C1}]║    ▄▀▄▀▄   ▄▀▄▀▄  ▄▀▀▀▄  ▄▀▀▀▄  ▄▀▀▀▄  ▄▀▀▀▄  ▄▀▀▀▀  ▀▀▀█▀▀▀       ║[/]", justify="center")
-    console.print(f"[{C2}]║    █ █ █   █▀▀▀   █   █  █   █  █   █  █   █  ▀▀▀▀█    █          ║[/]", justify="center")
-    console.print(f"[{C2}]║    █   █   █▄▄▄   ▀▄▄▄▀  ▀▄▄▄▀  ▀▄▄▄▀  ▀▄▄▄▀  ▄▄▄▄▀    █          ║[/]", justify="center")
-    console.print(f"[{C1}]║                                                                    ║[/]", justify="center")
-    console.print(f"[{C1}]╚{'═'*68}╝[/]", justify="center")
+    # Modern ASCII Art
+    art = [
+        "███╗   ███╗███████╗ ██████╗ ██████╗  ██████╗  ██████╗ ███████╗████████╗",
+        "████╗ ████║██╔════╝██╔═══██╗██╔══██╗██╔═══██╗██╔═══██╗██╔════╝╚══██╔══╝",
+        "██╔████╔██║█████╗  ██║   ██║██████╔╝██║   ██║██║   ██║███████╗   ██║   ",
+        "██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██╗██║   ██║██║   ██║╚════██║   ██║   ",
+        "██║ ╚═╝ ██║███████╗╚██████╔╝██████╔╝╚██████╔╝╚██████╔╝███████║   ██║   ",
+        "╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   "
+    ]
+    
+    # Create gradient effect
+    for i, line in enumerate(art):
+        # Gradient from Cyan to Blue/Purple
+        color = f"rgb(0,{255 - (i * 30)},{255})"
+        console.print(f"[{color}]{line}[/]", justify="center")
+        
+    ver_text = f"v{VERSION}"
+    if update_avail and latest_ver:
+        ver_text += f" → [bold green]v{latest_ver} Available![/]"
+    elif latest_ver:
+         ver_text += f" (Latest)"
+         
+    console.print(f"\n[{DIM}]Windows Performance Optimizer | {ver_text}[/]", justify="center")
     console.print()
 
 
@@ -68,7 +88,14 @@ def grid(items, cols=3):
         while len(row) < cols:
             row.append("")
         tbl.add_row(*row)
-    console.print(tbl)
+    console.print(
+        Panel(
+            tbl,
+            border_style=DIM,
+            box=box.ROUNDED,
+            padding=(0, 2),
+        )
+    )
 
 
 def footer(pg=None, tot=None):
@@ -93,24 +120,34 @@ def inp():
 
 _beta = False
 
-def main():
+def main(latest_ver=None, update_avail=False):
     while True:
-        logo()
-        items = [
-            f"[{C2}][1][/] {t('menu_optimize')}",
-            f"[{C2}][2][/] {t('menu_deep_optimize')}",
-            f"[{C2}][3][/] {t('menu_privacy')}",
-            f"[{C2}][4][/] {t('menu_tools')}",
-            f"[{C2}][5][/] {t('menu_language')} [{DIM}]{get_lang().upper()}[/]",
-            f"[{ERR}][X][/] {t('menu_exit')}",
-        ]
+        logo(latest_ver, update_avail)
         
-        tbl = Table(show_header=False, box=None, expand=True, padding=(1, 3))
-        tbl.add_column(ratio=1, justify="center")
-        tbl.add_column(ratio=1, justify="center")
-        for i in range(0, len(items), 2):
-            tbl.add_row(items[i], items[i+1] if i+1 < len(items) else "")
-        console.print(tbl)
+        # Dashboard Layout - Seamless Block
+        menu_table = Table(box=box.ROUNDED, show_lines=True, expand=True, padding=(1, 2), border_style=DIM)
+        menu_table.add_column(ratio=1)
+        menu_table.add_column(ratio=1)
+        
+        # Row 1
+        menu_table.add_row(
+            f"[bold cyan][1] 🚀 {t('menu_optimize')}[/]\n[{DIM}]Basic tweaks & FPS boost[/]",
+            f"[bold red][2] ⚡ {t('menu_deep_optimize')}[/]\n[{DIM}]Advanced & Experimental[/]"
+        )
+        
+        # Row 2
+        menu_table.add_row(
+            f"[bold green][3] 🛡️ {t('menu_privacy')}[/]\n[{DIM}]Block telemetry & ads[/]",
+            f"[bold magenta][4] 🔧 {t('menu_tools')}[/]\n[{DIM}]Cleaner, Backup, etc.[/]"
+        )
+        
+        # Row 3
+        menu_table.add_row(
+            f"[bold blue][5] 🌐 {t('menu_language')}[/]\n[{DIM}]{get_lang().upper()}[/]",
+            f"[bold white][X] 🚪 {t('menu_exit')}[/]\n[{DIM}]Bye bye![/]"
+        )
+        
+        console.print(menu_table)
         
         ch = inp()
         if ch == "1": menu_optimize()
@@ -592,7 +629,7 @@ def disclaimer():
     return inp().lower() in ["ok", "yes", "dong y"]
 
 
-def run():
+def run(latest_ver=None, update_avail=False):
     saved = load_lang()
     init_language(saved if saved else None)
     if not system.is_admin():
@@ -607,6 +644,6 @@ def run():
         console.print(f"[{WARN}]{t('creating_backup')}[/]")
         backup.full_backup()
         backup.mark_initialized()
-    main()
+    main(latest_ver, update_avail)
 
 

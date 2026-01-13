@@ -10,8 +10,11 @@ def main():
     print("Starting...")
     
     try:
+        from utils.update import check_for_updates
+        latest_ver, update_avail = check_for_updates()
+        
         from ui.terminal import run
-        run()
+        run(latest_ver, update_avail)
     except KeyboardInterrupt:
         print("\nBye!")
     except Exception as ex:
