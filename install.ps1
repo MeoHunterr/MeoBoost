@@ -42,14 +42,18 @@ if (-not (Test-Path $PyExe)) {
     $pyUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
     $zipPath = Join-Path $env:TEMP "python_embed.zip"
     
-    # Download zip
-    Write-S "Downloading Python core..."
-    Invoke-WebRequest -Uri $pyUrl -OutFile $zipPath -UseBasicParsing
+    # Check cache
+    if (-not (Test-Path $zipPath)) {
+        Write-S "Downloading Python core..."
+        Invoke-WebRequest -Uri $pyUrl -OutFile $zipPath -UseBasicParsing
+    } else {
+        Write-S "Using cached Python core..."
+    }
     
     # Extract
     Write-S "Extracting..."
     Expand-Archive -Path $zipPath -DestinationPath $PyDir -Force
-    Remove-Item $zipPath -Force
+    # Keep zip for cache
     
     # --- IMPORTANT: CONFIGURE TO RUN PIP ---
     # Default ._pth file blocks site import, need to fix it to install pip
@@ -64,11 +68,12 @@ if (-not (Test-Path $PyExe)) {
     # Download and install PIP
     Write-S "Installing pip package manager..."
     $getPip = Join-Path $env:TEMP "get-pip.py"
-    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
+    if (-not (Test-Path $getPip)) {
+        Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
+    }
     
     # Run get-pip.py using the downloaded python
-    & $PyExe $getPip --no-warn-script-location | Out-Null
-    Remove-Item $getPip -Force
+    & $PyExe $getPip --no-warn-script-location --disable-pip-version-check | Out-Null
     
     Write-O "Portable Python ready!"
 } else {
@@ -100,10 +105,21 @@ if (-not (Test-Path $Src)) {
 # Note: When using embed python, pip module is in the script, so call differently
 $reqFile = Join-Path $Src "requirements.txt"
 if (Test-Path $reqFile) {
-    Write-S "Checking dependencies..."
-    # Call pip via module
-    & $PyExe -m pip install -r $reqFile -q --no-warn-script-location
-    Write-O "Dependencies installed."
+    # Smart check: Try importing modules first
+    $needsInstall = $true
+    try {
+        & $PyExe -c "import rich, requests" 2>$null
+        if ($LASTEXITCODE -eq 0) { $needsInstall = $false }
+    } catch {}
+
+    if ($needsInstall) {
+        Write-S "Installing dependencies..."
+        # Call pip via module
+        & $PyExe -m pip install -r $reqFile -q --no-warn-script-location --disable-pip-version-check
+        Write-O "Dependencies installed."
+    } else {
+        Write-O "Dependencies already installed."
+    }
 }
 
 # 4. Run Tool
