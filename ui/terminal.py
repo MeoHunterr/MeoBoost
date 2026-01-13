@@ -4,6 +4,7 @@ MeoBoost Terminal UI - Full Mode
 
 import os
 import sys
+import shutil
 import subprocess
 
 from rich.console import Console
@@ -30,11 +31,13 @@ OK, WARN, ERR, DIM = "#00ff88", "#ffaa00", "#ff4444", "#555555"
 
 
 def cls():
-    # Clear screen using subprocess for security (avoid shell injection)
+    # Clear screen using subprocess with full path
     if os.name == 'nt':
-        subprocess.run(['cmd', '/c', 'cls'], shell=False, check=False)
+        cmd = shutil.which("cmd") or "cmd.exe"
+        subprocess.run([cmd, '/c', 'cls'], shell=False, check=False)
     else:
-        subprocess.run(['clear'], shell=False, check=False)
+        clear = shutil.which("clear") or "clear"
+        subprocess.run([clear], shell=False, check=False)
 
 
 def badge(on, na=False):

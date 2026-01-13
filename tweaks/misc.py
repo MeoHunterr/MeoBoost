@@ -4,6 +4,7 @@ MeoBoost Miscellaneous Tools
 
 import os
 import shutil
+import subprocess
 from utils import registry, system, files
 from config import FILES_DIR
 
@@ -27,7 +28,13 @@ def run_cleaner():
     windir = os.environ.get("SYSTEMROOT", r"C:\Windows")
     
     # Clear recycle bin
-    system.run_cmd("rd /s /q %SYSTEMDRIVE%\\$Recycle.bin", shell=True)
+    # Clear recycle bin
+    try:
+        recycle_bin = os.path.join(os.environ.get("SYSTEMDRIVE", "C:"), "$Recycle.bin")
+        if os.path.exists(recycle_bin):
+            shutil.rmtree(recycle_bin, ignore_errors=True)
+    except Exception:
+        pass
     
     # Clear user temp
     if temp_dir and os.path.exists(temp_dir):
@@ -99,7 +106,8 @@ def soft_restart():
     # Restart explorer
     system.kill_process("explorer.exe")
     windir = os.environ.get("SYSTEMROOT", r"C:\Windows")
-    os.startfile(os.path.join(windir, "explorer.exe"))
+    explorer = os.path.join(windir, "explorer.exe")
+    subprocess.Popen([explorer])
     
     # Reset network
     system.run_cmd("netsh advfirewall reset")

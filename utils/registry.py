@@ -1,4 +1,5 @@
 import winreg
+import shutil
 import subprocess
 
 HIVES = {
@@ -29,7 +30,7 @@ def read(path, name):
         with winreg.OpenKey(h, sub, 0, winreg.KEY_READ) as k:
             val, _ = winreg.QueryValueEx(k, name)
             return val
-    except:
+    except Exception:
         return None
 
 def write(path, name, val, typ="REG_DWORD"):
@@ -39,7 +40,7 @@ def write(path, name, val, typ="REG_DWORD"):
         with winreg.CreateKeyEx(h, sub, 0, winreg.KEY_WRITE) as k:
             winreg.SetValueEx(k, name, 0, t, val)
         return True
-    except:
+    except Exception:
         return False
 
 def delete(path, name):
@@ -48,7 +49,7 @@ def delete(path, name):
         with winreg.OpenKey(h, sub, 0, winreg.KEY_WRITE) as k:
             winreg.DeleteValue(k, name)
         return True
-    except:
+    except Exception:
         return True  # already gone, whatever
 
 def exists(path, name):
@@ -59,7 +60,7 @@ def key_exists(path):
         h, sub = _parse(path)
         with winreg.OpenKey(h, sub, 0, winreg.KEY_READ):
             return True
-    except:
+    except Exception:
         return False
 
 def subkeys(path):
@@ -74,52 +75,57 @@ def subkeys(path):
                     i += 1
                 except OSError:
                     break
-    except:
+    except Exception:
         pass
     return keys
 
 def add(path, name, val, typ="REG_DWORD"):
     # using reg.exe cause it handles more edge cases
     try:
-        cmd = ["reg", "add", path, "/v", name, "/t", typ, "/d", str(val), "/f"]
+        reg = shutil.which("reg") or "reg.exe"
+        cmd = [reg, "add", path, "/v", name, "/t", typ, "/d", str(val), "/f"]
         r = subprocess.run(cmd, capture_output=True, text=True)
         return r.returncode == 0
-    except:
+    except Exception:
         return False
 
 def rm(path, name=None):
     try:
+        reg = shutil.which("reg") or "reg.exe"
         if name:
-            cmd = ["reg", "delete", path, "/v", name, "/f"]
+            cmd = [reg, "delete", path, "/v", name, "/f"]
         else:
-            cmd = ["reg", "delete", path, "/f"]
+            cmd = [reg, "delete", path, "/f"]
         r = subprocess.run(cmd, capture_output=True, text=True)
         return r.returncode == 0
-    except:
+    except Exception:
         return False
 
 def query(path, name=None):
     try:
-        cmd = ["reg", "query", path]
+        reg = shutil.which("reg") or "reg.exe"
+        cmd = [reg, "query", path]
         if name:
             cmd += ["/v", name]
         r = subprocess.run(cmd, capture_output=True, text=True)
         return r.stdout if r.returncode == 0 else None
-    except:
+    except Exception:
         return None
 
 def export(path, file):
     try:
-        r = subprocess.run(["reg", "export", path, file, "/y"], capture_output=True)
+        reg = shutil.which("reg") or "reg.exe"
+        r = subprocess.run([reg, "export", path, file, "/y"], capture_output=True)
         return r.returncode == 0
-    except:
+    except Exception:
         return False
 
 def load(file):
     try:
-        r = subprocess.run(["reg", "import", file], capture_output=True)
+        reg = shutil.which("reg") or "reg.exe"
+        r = subprocess.run([reg, "import", file], capture_output=True)
         return r.returncode == 0
-    except:
+    except Exception:
         return False
 
 # aliases for backwards compat

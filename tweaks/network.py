@@ -84,7 +84,8 @@ def toggle_nic():
         with open(os.path.join(BACKUP_DIR, "nic_backup.txt"), "w") as f:
             f.write("Applied")
         
-        system.run_cmd("ipconfig /release & ipconfig /renew", shell=True)
+        system.run_cmd("ipconfig /release")
+        system.run_cmd("ipconfig /renew")
     
     return True
 
