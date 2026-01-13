@@ -7,7 +7,6 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $Repo = "meohunterr/MeoBoost"
-# Use LocalAppData instead of hidden user profile folder to avoid "Suspicious" flag
 $Dir = Join-Path $env:LOCALAPPDATA "MeoBoost"
 $Src = Join-Path $Dir "source"
 
@@ -29,94 +28,94 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
     exit
 }
 
-# Find Python
-$PyCmd = $null
-try {
-    $r = py -3 --version 2>&1
-    if ($LASTEXITCODE -eq 0) { $PyCmd = "py" }
-} catch {
-    # Ignore errors if py launcher is not found
-}
+$PyDir = Join-Path $Dir "python_embed"
+$PyExe = Join-Path $PyDir "python.exe"
 
-if (-not $PyCmd) {
-    try {
-        $r = python --version 2>&1
-        if ($LASTEXITCODE -eq 0 -and $r -match "Python 3") { $PyCmd = "python" }
-    } catch {
-        # Ignore errors if python executable is not found
-    }
-}
-
-if (-not $PyCmd) {
-    # Install Python
-    Write-S "Python not found. Installing..."
-    $installed = $false
-
-    # Try Winget first (Recommended/Safe method)
-    if (Get-Command "winget" -ErrorAction SilentlyContinue) {
-        try {
-            Write-S "Attempting installation via Winget..."
-            $proc = Start-Process -FilePath "winget" -ArgumentList "install -e --id Python.Python.3.11 --scope machine --accept-package-agreements --accept-source-agreements --disable-interactivity" -PassThru -Wait
-            if ($proc.ExitCode -eq 0) {
-                $installed = $true
-                # Refresh env vars
-                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-                $PyCmd = "py"
-                Write-O "Python installed via Winget"
-            }
-        } catch {
-            Write-E "Winget failed. Trying direct download..."
-        }
+# 1. Check if Python Embed is missing, then download
+if (-not (Test-Path $PyExe)) {
+    Write-S "Preparing portable Python environment..."
+    
+    # Create directory
+    if (-not (Test-Path $PyDir)) { New-Item -ItemType Directory -Path $PyDir -Force | Out-Null }
+    
+    # Download Python 3.11.9 Embeddable (Pure ZIP, safe)
+    $pyUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+    $zipPath = Join-Path $env:TEMP "python_embed.zip"
+    
+    # Download zip
+    Write-S "Downloading Python core..."
+    Invoke-WebRequest -Uri $pyUrl -OutFile $zipPath -UseBasicParsing
+    
+    # Extract
+    Write-S "Extracting..."
+    Expand-Archive -Path $zipPath -DestinationPath $PyDir -Force
+    Remove-Item $zipPath -Force
+    
+    # --- IMPORTANT: CONFIGURE TO RUN PIP ---
+    # Default ._pth file blocks site import, need to fix it to install pip
+    $pthFile = Get-ChildItem -Path $PyDir -Filter "*._pth" | Select-Object -ExpandProperty FullName
+    if ($pthFile) {
+        $content = Get-Content $pthFile
+        # Uncomment "import site"
+        $content = $content -replace "#import site", "import site" 
+        Set-Content -Path $pthFile -Value $content
     }
 
-    # Fallback to direct download if Winget fails or is missing
-    if (-not $installed) {
-        Write-S "Downloading Python installer..."
-        $installer = Join-Path $env:TEMP "python_setup.exe"
-        Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe" -OutFile $installer -UseBasicParsing
-        Start-Process -FilePath $installer -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1 Include_pip=1" -Wait
-        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
-        Remove-Item $installer -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
-        $PyCmd = "py"
-        Write-O "Python installed manually"
-    }
+    # Download and install PIP
+    Write-S "Installing pip package manager..."
+    $getPip = Join-Path $env:TEMP "get-pip.py"
+    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
+    
+    # Run get-pip.py using the downloaded python
+    & $PyExe $getPip --no-warn-script-location | Out-Null
+    Remove-Item $getPip -Force
+    
+    Write-O "Portable Python ready!"
 } else {
-    Write-O "Python found"
+    Write-O "Using existing portable Python."
 }
 
-# Download source
-Write-S "Downloading source code..."
-if (-not (Test-Path $Dir)) { New-Item -ItemType Directory -Path $Dir -Force | Out-Null }
-$zipPath = Join-Path $env:TEMP "MeoBoost.zip"
-Invoke-WebRequest -Uri "https://github.com/$Repo/archive/refs/heads/main.zip" -OutFile $zipPath -UseBasicParsing
-if ($PWD.Path.StartsWith($Src)) { Set-Location $env:USERPROFILE }
-if (Test-Path $Src) { Remove-Item $Src -Recurse -Force }
-$extractDir = Join-Path $env:TEMP "MeoBoost_ext"
-if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
-Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
-$extracted = Get-ChildItem $extractDir -Directory | Select-Object -First 1
-Move-Item -Path $extracted.FullName -Destination $Src -Force
-Remove-Item $zipPath, $extractDir -Recurse -Force -ErrorAction SilentlyContinue
-Write-O "Source code ready"
-
-# Install dependencies
+# 2. Install Dependencies
+# Note: When using embed python, pip module is in the script, so call differently
 $reqFile = Join-Path $Src "requirements.txt"
 if (Test-Path $reqFile) {
-    Write-S "Installing dependencies..."
-    # Safe execution without Invoke-Expression
-    & $PyCmd -m pip install -r $reqFile -q
-    Write-O "Dependencies installed"
+    Write-S "Checking dependencies..."
+    # Call pip via module
+    & $PyExe -m pip install -r $reqFile -q --no-warn-script-location
+    Write-O "Dependencies installed."
 }
 
-# Run
+# Download source (if not already there or update needed - simplified logic for now)
+# For this script, we assume source is managed by the caller or this script is part of it.
+# But based on previous logic, we might need to download source if missing.
+# Re-adding source download logic from previous version but adapted.
+
+if (-not (Test-Path $Src)) {
+    Write-S "Downloading source code..."
+    if (-not (Test-Path $Dir)) { New-Item -ItemType Directory -Path $Dir -Force | Out-Null }
+    $zipPath = Join-Path $env:TEMP "MeoBoost.zip"
+    Invoke-WebRequest -Uri "https://github.com/$Repo/archive/refs/heads/main.zip" -OutFile $zipPath -UseBasicParsing
+    
+    # Handle directory locking if re-running
+    if ($PWD.Path.StartsWith($Src)) { Set-Location $env:USERPROFILE }
+    if (Test-Path $Src) { Remove-Item $Src -Recurse -Force }
+    
+    $extractDir = Join-Path $env:TEMP "MeoBoost_ext"
+    if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
+    Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
+    $extracted = Get-ChildItem $extractDir -Directory | Select-Object -First 1
+    Move-Item -Path $extracted.FullName -Destination $Src -Force
+    Remove-Item $zipPath, $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-O "Source code ready"
+}
+
+# 3. Run Tool
 Write-Host ""
 Write-S "Starting MeoBoost..."
 Write-Host ""
 
 Set-Location $Src
-# Safe execution without Invoke-Expression
-& $PyCmd main.py
+& $PyExe main.py
 
 Write-Host ""
 Write-O "Session ended."
