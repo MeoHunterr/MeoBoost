@@ -1,8 +1,9 @@
+<link rel="icon" type="image/x-icon" href="favicon.ico">
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?style=for-the-badge&logo=windows" alt="Windows" />
   <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="License" />
-  <a href="https://www.virustotal.com/gui/file/6285bb104b4788c661e3720a10fce79d9c5398bac810d1658375559ccde1bf27?nocache=1">
+  <a href="https://www.virustotal.com/gui/file/cefb35efc9e1ffcfcfc8ad691b44abd6700225f7be8e476dfe859868918e4c3a?nocache=1">
     <img src="https://img.shields.io/badge/AV%20Safe-100%25-brightgreen?style=for-the-badge" alt="AV Safe" />
   </a>
 </p>
@@ -93,6 +94,18 @@ By using this software, you acknowledge and agree that:
 4. **Backup**: It is **strongly recommended** to create a System Restore Point or a full backup of your important data before applying any optimizations.
 
 If you do not agree to these terms, please do not use MeoBoost.
+
+---
+
+## 🤝 Support
+
+If you find **MeoBoost** useful, please consider supporting the project:
+
+- ⭐ **Star on GitHub**: Help others discover the project.
+- ☕ **Donate**: Support the developer via **Techcombank** (`6668885688` - Nguyen Minh Tuan).
+- 💬 **Share**: Spread the word to your friends and communities.
+- 🐛 **Report Bugs**: [Open an issue](https://github.com/meohunterr/MeoBoost/issues) if you encounter problems.
+- 🌍 **Contribute**: Submit Pull Requests or help with translations.
 
 ---
 
